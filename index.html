@@ -941,6 +941,18 @@ footer {
     }, { rootMargin: '-35% 0px -55% 0px' }).observe(s)
   );
 
+  // pastikan halaman selalu mulai dari Beranda saat pertama dibuka
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  window.scrollTo(0, 0);
+  if (location.hash && location.hash !== '#hero') {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  window.addEventListener('load', () => {
+    window.scrollTo(0, 0);
+  });
+
   // sidebar toggle
   function toggleSidebar() {
     const sb = document.getElementById('sidebar');
