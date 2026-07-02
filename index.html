@@ -636,7 +636,14 @@ footer {
 .ft-copy { font-size: 0.68rem; color: var(--t3); }
 
 @media (max-width: 768px) {
-  .sidebar { display: none !important; }
+  .sidebar {
+    display: flex !important;
+    width: min(80vw, 300px);
+    transform: translateX(-100%);
+    box-shadow: 8px 0 28px rgba(0,0,0,0.45);
+    z-index: 400;
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
   .main { margin-left: 0 !important; }
   section { padding: 2.75rem 1.25rem; }
   #hero { padding: 3.5rem 1.25rem 3rem; min-height: auto; }
@@ -646,6 +653,19 @@ footer {
   .foto-box { width: 160px; }
   .contact-row { grid-template-columns: 1fr; }
   footer { padding: 1.75rem 1.25rem; }
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 56px 0 0 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 390;
+  }
+  .sidebar-backdrop.show { display: block; }
+  .sb-toggle {
+    width: 38px; height: 38px;
+    z-index: 410;
+    position: relative;
+  }
 }
 
 /* ── FOTO PROFIL ── */
@@ -699,6 +719,8 @@ footer {
   .foto-box {
     width: 100%;
     min-height: 220px;
+    order: -1;
+    margin-bottom: 0.5rem;
   }
 }
 </style>
@@ -714,12 +736,13 @@ footer {
       <div class="sb-sub">D3 Teknik Komputer</div>
     </div>
   </a>
-  <button class="sb-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Sembunyikan / tampilkan sidebar">
+  <button class="sb-toggle" id="sidebarToggle" title="Sembunyikan / tampilkan sidebar">
     <span></span><span></span><span></span>
   </button>
 </div>
 
 <!-- sidebar -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebarMobile()"></div>
 <aside class="sidebar" id="sidebar">
   <nav>
     <ul>
@@ -945,12 +968,40 @@ footer {
 
   // sidebar toggle
   window.addEventListener('load', () => window.scrollTo(0, 0));
+  function isMobileView() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
   function toggleSidebar() {
     const sb = document.getElementById('sidebar');
     const mn = document.querySelector('.main');
-    const isHidden = sb.classList.toggle('hidden');
-    mn.classList.toggle('full', isHidden);
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (isMobileView()) {
+      const isOpen = sb.classList.toggle('mobile-open');
+      backdrop.classList.toggle('show', isOpen);
+    } else {
+      const isHidden = sb.classList.toggle('hidden');
+      mn.classList.toggle('full', isHidden);
+    }
   }
+
+  function closeSidebarMobile() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('sidebarBackdrop').classList.remove('show');
+  }
+
+  // safety net: pastikan tombol hamburger selalu merespon di semua browser mobile
+  document.getElementById('sidebarToggle').addEventListener('click', function(e) {
+    e.preventDefault();
+    toggleSidebar();
+  });
+
+  // tutup sidebar mobile otomatis saat klik menu navigasi
+  document.querySelectorAll('.sidebar nav a').forEach(a => {
+    a.addEventListener('click', () => {
+      if (isMobileView()) closeSidebarMobile();
+    });
+  });
 
   // smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
