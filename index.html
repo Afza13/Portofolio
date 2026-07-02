@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script>
+  // jalankan sedini mungkin, sebelum browser sempat lompat ke hash/posisi scroll lama
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  if (location.hash) {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Qeesya Daffa — Portfolio</title>
@@ -941,19 +950,8 @@ footer {
     }, { rootMargin: '-35% 0px -55% 0px' }).observe(s)
   );
 
-  // pastikan halaman selalu mulai dari Beranda saat pertama dibuka
-  if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-  }
-  window.scrollTo(0, 0);
-  if (location.hash && location.hash !== '#hero') {
-    history.replaceState(null, '', location.pathname + location.search);
-  }
-  window.addEventListener('load', () => {
-    window.scrollTo(0, 0);
-  });
-
   // sidebar toggle
+  window.addEventListener('load', () => window.scrollTo(0, 0));
   function toggleSidebar() {
     const sb = document.getElementById('sidebar');
     const mn = document.querySelector('.main');
