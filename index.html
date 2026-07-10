@@ -601,7 +601,7 @@ main.main > section[id] {
   box-shadow: 0 0 8px rgba(45,212,191,0.45);
   transform: scaleY(0);
   transform-origin: top;
-  transition: transform 1.5s cubic-bezier(0.65,0,0.35,1);
+  transition: transform 2.4s linear;
 }
 
 .tl.grow .tl-track-fill { transform: scaleY(1); }
@@ -611,7 +611,7 @@ main.main > section[id] {
   padding-bottom: 2.25rem;
   opacity: 0;
   transform: translateX(28px);
-  transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1), transform 0.55s cubic-bezier(0.4,0,0.2,1);
+  transition: opacity 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 .tl-item.dir-left { transform: translateX(-28px); }
 .tl-item:last-child { padding-bottom: 0; }
@@ -1307,16 +1307,18 @@ footer {
     });
   }
 
-  // ── TIMELINE PENDIDIKAN: item muncul satu-satu (delay bertahap) + garis "digambar" ──
+  // ── TIMELINE PENDIDIKAN: garis "digambar" dari atas ke bawah, dan tiap lingkaran (dot) baru
+  // muncul persis saat garis melewati posisi vertikalnya — bukan interval waktu tetap ──
   // dipicu langsung dari activatePage() saat halaman Pendidikan baru diaktifkan (pola sama seperti replayHeroAnimation)
   const tlWrap = document.getElementById('tlWrap');
+  const tlTrackFill = document.getElementById('tlTrackFill');
   const tlItems = tlWrap ? Array.from(tlWrap.querySelectorAll('.tl-item')) : [];
-  const TL_STEP = 320; // ms jeda antar item, biar jelas kelihatan satu-satu
+  const TL_LINE_DURATION = 2400; // ms, HARUS sama dengan durasi transition .tl-track-fill di CSS
+  const TL_TRACK_TOP = 6; // px, sesuai `top: 6px` pada .tl-track-fill di CSS
   let tlTimers = [];
 
   tlItems.forEach((item, i) => {
     if (i % 2 === 1) item.classList.add('dir-left'); // selang-seling arah biar hidup
-    item.style.transitionDelay = (i * TL_STEP) + 'ms';
   });
 
   function replayTimelinePendidikan() {
@@ -1331,8 +1333,17 @@ footer {
     // beri jeda 1 frame supaya browser sempat mendaftarkan state "reset" sebelum animasi jalan lagi
     requestAnimationFrame(() => {
       tlWrap.classList.add('grow');
+
+      // ukur tinggi total garis, lalu hitung proporsi posisi tiap dot di sepanjang garis itu
+      const trackHeight = tlTrackFill ? tlTrackFill.offsetHeight : 0;
       tlItems.forEach((item, i) => {
-        tlTimers.push(setTimeout(() => item.classList.add('in-view'), i * TL_STEP));
+        const dot = item.querySelector('.tl-dot');
+        const dotY = dot ? (item.offsetTop + dot.offsetTop) : item.offsetTop;
+        const ratio = trackHeight > 0
+          ? Math.min(Math.max((dotY - TL_TRACK_TOP) / trackHeight, 0), 1)
+          : (i / Math.max(tlItems.length - 1, 1));
+        const delay = ratio * TL_LINE_DURATION;
+        tlTimers.push(setTimeout(() => item.classList.add('in-view'), delay));
       });
     });
   }
